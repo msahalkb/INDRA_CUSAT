@@ -1,4 +1,4 @@
-# <Project Title>: A Digital Twin for Predicting Glucose Excursions in Type 2 Diabetes
+# <Project Title> A Digital Twin for Predicting Glucose Excursions in Type 2 Diabetes
 
 > Happiest Health "Digital Twin Challenge" - Phase 1 submission
 
