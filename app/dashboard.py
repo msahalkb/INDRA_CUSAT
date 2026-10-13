@@ -24,7 +24,7 @@ NAMES = {"cgm": "Current glucose", "d15": "Change, last 15 min", "d30": "Change,
          "insulin_iu_4h": "Insulin, last 4 h", "has_insulin_record": "Insulin is recorded for this patient",
          "hour_sin": "Time of day", "hour_cos": "Time of day", "age": "Age", "bmi": "BMI", "hba1c_pct": "HbA1c",
          "fpg": "Fasting glucose (lab)", "diabetes_years": "Years with diabetes", "glycated_albumin": "Glycated albumin",
-         "cpep_fast": "Fasting C-peptide", "cpep_2h": "Post-meal C-peptide", "egfr": "Kidney function (eGFR)"}
+         "cpep_fast": "Fasting C-peptide", "hdl": "HDL cholesterol", "ldl": "LDL cholesterol", "tg": "Triglycerides", "chol": "Total cholesterol", "creatinine": "Creatinine", "uric_acid": "Uric acid", "bun": "Blood urea nitrogen", "ins_fast": "Fasting insulin (lab)", "ins_2h": "Post-meal insulin (lab)", "pp2h_glucose": "Post-meal glucose (lab)", "sex_male": "Sex", "smoking_pack_years": "Smoking history", "drinker": "Alcohol use", "hx_hypoglycemia": "History of low glucose", "cpep_2h": "Post-meal C-peptide", "egfr": "Kidney function (eGFR)"}
 RISK_COLOR = {"Low": "#2a9d8f", "Moderate": "#e9a23b", "High": "#d1495b"}
 
 
@@ -88,14 +88,15 @@ k = st.columns(6)
 k[0].metric("Age / sex", f"{int(p.age)} / {'M' if p.sex_male else 'F'}")
 k[1].metric("BMI", f"{p.bmi:.1f}")
 k[2].metric("HbA1c", f"{p.hba1c_pct:.1f} %")
-k[3].metric("Diabetes duration", f"{p.diabetes_years:.0f} y")
+k[3].metric("Diabetes duration", f"{p.diabetes_years:.0f} y" if p.diabetes_years >= 1 else f"{max(round(p.diabetes_years * 12), 1)} mo")
 k[4].metric("Time above 180", f"{(t_all.cgm > 180).mean():.0%}")
 k[5].metric("Recording", f"{(t_all.time.max() - t_all.time.min()).days + 1} days")
 st.caption(f"**Medication:** {', '.join(rx) or 'none recorded'}  ·  **Conditions:** {', '.join(cx) or 'none recorded'}")
 
 # ---------------- day + now selector ----------------
 days = sorted(t_all.time.dt.date.unique())
-best = d.loc[d.risk.fillna(0).idxmax()]            # most interesting moment of this recording
+cand = d[(d.y == 1) & (d.risk >= 0.4)]                       # an early-warning moment: spike ahead, risk already high
+best = cand.sort_values(["minutes_to_cross", "risk"], ascending=False).iloc[0] if len(cand) else d.loc[d.risk.fillna(0).idxmax()]
 dcol, ncol = st.columns([1, 3])
 day = dcol.selectbox("Day", days, index=days.index(best.time.date()), key=f"day_{fid}", format_func=lambda x: x.strftime("%a %d %b"))
 dd = d[d.time.dt.date == day]
@@ -165,12 +166,22 @@ with f2:
 
 # ---------------- what-if ----------------
 st.divider(); st.subheader("What-if: change the recent meal or insulin")
-w1, w2, w3 = st.columns([1, 1, 1.2])
-cs = w1.slider("Carbohydrate food in last 3 h", 0, 200, 100, 10, format="%d%%")
-ex = w2.slider("Extra insulin in last 4 h (IU)", 0.0, 10.0, 0.0, 0.5)
-X2 = X.copy(); X2["meal_carb_3h"] *= cs / 100; X2["meal_g_3h"] *= (0.5 + 0.5 * cs / 100) if row.meal_g_3h > 0 else 1
-X2["insulin_iu_4h"] += ex
+w1, w2, w3 = st.columns([1.3, 1.3, 1.2])
+mode = w1.radio("Meal in the last 3 hours", ["As recorded", "No meal", "Add a meal"], horizontal=True)
+X2 = X.copy()
+if mode == "No meal":
+    X2["meal_carb_3h"] = 0; X2["meal_g_3h"] = 0; X2["min_since_meal"] = 1440
+elif mode == "Add a meal":
+    ago = w1.slider("Eaten how many minutes ago", 0, 180, 30, 15)
+    carbs = w1.slider("Carbohydrate food (g)", 20, 150, 60, 10)
+    X2["meal_carb_3h"] = row.meal_carb_3h + carbs; X2["meal_g_3h"] = row.meal_g_3h + 2 * carbs
+    X2["min_since_meal"] = min(float(row.min_since_meal), float(ago))
+if row.has_insulin_record == 1:
+    ex = w2.slider("Extra insulin in last 4 h (IU)", 0.0, 10.0, 0.0, 0.5); X2["insulin_iu_4h"] = row.insulin_iu_4h + ex
+else:
+    w2.caption("No insulin is recorded for this patient, so the insulin what-if is switched off.")
 r0 = float(model.predict(X)[0]); r1 = float(model.predict(X2)[0])
-w3.metric("Risk with this change", f"{r1:.0%}", f"{(r1 - r0) * 100:+.0f} points vs. the model's baseline ({r0:.0%})", delta_color="inverse")
-st.caption("What-if uses the trained model's response to the inputs. It shows what the model learned, not a proven causal effect. "
-           "The baseline here comes from the final model (trained on all patients), so it can differ slightly from the held-out risk curve above.")
+w3.metric("Risk with this change", f"{r1:.0%}", f"{(r1 - r0) * 100:+.0f} points vs. as recorded ({r0:.0%})", delta_color="inverse")
+st.caption("The twin responds mainly to **when** a meal happened, much less to its size or to small insulin changes, which is what the model "
+           "learned from these 100 patients. This shows the model's learned behaviour, not a proven causal effect, and is not treatment advice. "
+           "Baseline here comes from the final model (trained on all patients), so it can differ slightly from the held-out curve above.")
