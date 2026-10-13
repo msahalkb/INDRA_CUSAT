@@ -5,7 +5,7 @@
 ## 1. Team Details (Team INDRA)
 | Name | Role | College / Incubator | Email |
 |---|---|---|---|
-| Muhammed Sahal K B (team leader, solo team) | Team Leader, all roles | Cochin University of Science and Technology (CUSAT), Kochi | msahalkb@gmail.com |
+| Muhammed Sahal K B | Team Leader, all roles | Cochin University of Science and Technology (CUSAT), Kochi | msahalkb@gmail.com |
 
 ## 2. Project Title
 GlucoTwin: A Digital Twin for 2-Hour Glucose Spike Prediction in Type 2 Diabetes
