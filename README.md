@@ -1,14 +1,14 @@
-# <Project Title> A Digital Twin for Predicting Glucose Excursions in Type 2 Diabetes
+# GlucoTwin: A Digital Twin for 2-Hour Glucose Spike Prediction in Type 2 Diabetes
 
 > Happiest Health "Digital Twin Challenge" - Phase 1 submission
 
-## 1. Team Details
+## 1. Team Details (Team INDRA)
 | Name | Role | College / Incubator | Email |
 |---|---|---|---|
-| MUHAMMED SAHAL K B (team leader) | | Cochin University of Science And Technology (CUSAT), Kochi | |
+| <Leader name> (team leader) | Team Leader | Cochin University of Science and Technology (CUSAT), Kochi | msahalkb@gmail.com |
 
 ## 2. Project Title
-GlucoTwin
+GlucoTwin: A Digital Twin for 2-Hour Glucose Spike Prediction in Type 2 Diabetes
 
 ## 3. Problem Statement and Healthcare Use Case
 Type 2 diabetes affects over 100 million people in India. Post-meal glucose spikes drive complications, but patients and doctors only see them after they happen. This prototype is a virtual patient that predicts, from the last few hours of data plus the patient's clinical record, whether glucose will rise above 180 mg/dL within the next 2 hours.
