@@ -4,7 +4,6 @@ openpyxl
 xlrd
 scikit-learn
 lightgbm
-torch
 matplotlib
 streamlit
 plotly
