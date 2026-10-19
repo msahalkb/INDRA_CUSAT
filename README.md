@@ -42,8 +42,8 @@ Honest findings: real meal/insulin/trend data drives performance; the static rec
 
 ![ablation](results/ablation.png) ![roc](results/roc_pr.png)
 
-## 6. Video (20+ minutes)
-<link to unlisted YouTube video or file in repo>
+## 6. Video 
+https://youtu.be/gZ0j_k833l8
 
 ## 7. Open-Source License
 MIT. See [LICENSE](LICENSE). Dataset license and citation are listed in `data/README.md`.
